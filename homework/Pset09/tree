@@ -366,6 +366,7 @@ void inorder(tree node, vector<tree>& v) {
 // back through the argument v which is passed by reference.
 void postorder(tree node, vector<int>& v) {
 	DPRINT(cout << ">postorder size=" << v.size() << endl;);
+	if (empty(node)) return;
 	
 	postorder(node->left, v);
 	postorder(node->right, v);
@@ -378,7 +379,8 @@ void postorder(tree node, vector<int>& v) {
 // back through the argument v which is passed by reference.
 void preorder(tree node, vector<int>& v) {
 	DPRINT(cout << ">preorder size=" << v.size() << endl;);
-
+	if (empty(node)) return;
+	
 	v.push_back(node->key);
 	preorder(node->left, v);
 	preorder(node->right, v);
