@@ -1,5 +1,5 @@
-/**
-*  The graph.cpp and graph.h implements an undirected/directed graph of 
+/*
+*  The graph.cpp and graph.h implements an undirected/directed graph of
 *  vertices named 0 through V - 1.
 *  It supports the following two primary operations:
 *  1) add an edge to the graph,
@@ -40,12 +40,12 @@
 #include <vector>
 #include <queue>
 #include <set>
-#include <iomanip> 
+#include <iomanip>
 #include <cassert>
 #include "graph.h"
 using namespace std;
 
-// a helper function 
+// a helper function
 bool skipline(string line) {
 	string beginning;
 	stringstream ss(line);
@@ -77,7 +77,7 @@ graph graph_by_file(string fname) {
 	}
 
 	// be ready to read a line graph(that begins with .) in the text file
-	// skip comment section until the first line which is meaningful 
+	// skip comment section until the first line which is meaningful
 	getline(fp, line);
 	while (fp) {
 		getline(fp, line);
@@ -146,7 +146,7 @@ graph graph_by_file(string fname) {
 	assert(error == 0);			// exit if errors exist.
 	fp.close();
 	g->gfile = fname;
-	g->dotted = dotted;			// save dotted line graph 
+	g->dotted = dotted;			// save dotted line graph
 	DPRINT(cout << "<graph_by_file " << g->gfile << endl;);
 	return g;
 }
@@ -162,12 +162,12 @@ bool validVertex(graph g, int s) {
 	return false;
 }
 
-int V(graph g) { return g->V; }				// returns number of vertices 
-int E(graph g) { return g->E; }				// returns number of edges 
+int V(graph g) { return g->V; }				// returns number of vertices
+int E(graph g) { return g->E; }				// returns number of edges
 string gfile(graph g) { return g->gfile; }	// returns graph filename
 
 int degree(graph g) {
-	int max = 0; 
+	int max = 0;
 	for (int v = 0; v < V(g); ++v) {
 		int deg = degree(g, v);
 		if (deg > max) max = deg;
@@ -182,20 +182,20 @@ int degree(graph g, int v) {
 	return deg;
 }
 
-// returns number of connected components. 
-int nCCs(graph g) {			
+// returns number of connected components.
+int nCCs(graph g) {
 	int id = g->CCID[0];
-	int count = 1; 
-	for (int i = 0; i < V(g); i++) 
+	int count = 1;
+	for (int i = 0; i < V(g); i++)
 		if (id != g->CCID[i]) {
 			id = g->CCID[i];
 			count++;
 		}
-	return id == 0 ? 0 : count; 
-}		
+	return id == 0 ? 0 : count;
+}
 
 // adds an edge (from v to w) to an undirected graph
-// A new vertex is added to the adjacency list of v. 
+// A new vertex is added to the adjacency list of v.
 // The vertex is added at the beginning
 void addEdgeFromTo(graph g, int v, int w) {
 	gnode node = new Gnode(w, g->adj[v].next);
@@ -205,7 +205,7 @@ void addEdgeFromTo(graph g, int v, int w) {
 
 // adds an edge to an undirected graph
 void addEdge(graph g, int v, int w) {
-	addEdgeFromTo(g, v, w);	// add an edge from v to w. 
+	addEdgeFromTo(g, v, w);	// add an edge from v to w.
 	addEdgeFromTo(g, w, v);	// if graph is undirected, add both
 }
 
@@ -229,7 +229,7 @@ graph clear(graph g) {
 	delete[] g->adj;				// adj[] is freed here.
 
 	DPRINT(cout << " delete results\n";);
-	delete[] g->marked; 
+	delete[] g->marked;
 	delete[] g->parentDFS;
 	delete[] g->parentBFS;
 	delete[] g->BFS0;
@@ -246,8 +246,16 @@ graph clear(graph g) {
 void print_adjlist(graph g){
 	if (empty(g)) return;
 
-	cout << "your code here \n";
-
+	cout << "\n\tAdjacency-list: \n";
+	for(int v = 0; v < V(g); ++v){
+		cout << "\tV[" << v << "]: ";
+		gnode w = g -> adj[v].next;
+		while(w){
+			cout << w -> item << " ";
+			w = w -> next;
+		}
+		cout << endl;
+	}
 }
 
 // prints dotted lines read from the graph text file.
@@ -329,7 +337,7 @@ void print_result(graph g){
 	cout << "\t     color[0.." + to_string(V(g) - 1) + "] = ";
 	for (int i = 0; i < V(g); i++) cout << setw(4) << g->color[i]; cout << endl;
 	cout << endl;
-	print_DFS(g);	
+	print_DFS(g);
 	print_BFS(g);
 }
 
@@ -339,23 +347,23 @@ void setBFS0(graph g, int v, queue<int>& que) {
 	size_t size = que.size();
 	while (!que.empty()) {
 		// cout << "v,q=" << v << "," << que.front() << endl;
-		g->BFS0[v++] = que.front();  
+		g->BFS0[v++] = que.front();
 		que.pop();
 	}
 }
 
-// runs BFS starting at v and produces BFS0[], distTo[] & parentBFS[] 
+// runs BFS starting at v and produces BFS0[], distTo[] & parentBFS[]
 void BFS(graph g, int v) {
 	DPRINT(cout << ">BFS v=" << v << endl;);
 	queue<int> que;		  // to process each vertex
 	queue<int> sav;       // BFS result saved
-
+	int dist = 1;
 	// all marked[] are set to false since it may visit all vertices
 	for (int i = 0; i < V(g); i++)  g->marked[i] = false;
 	g->parentBFS[v] = -1;
 	g->marked[v] = true;
 	g->distTo[v] = 0;
-	g->BFSv = {};         
+	g->BFSv = {};
 
 	que.push(v);
 	sav.push(v);
@@ -368,9 +376,11 @@ void BFS(graph g, int v) {
 				g->marked[w->item] = true;
 				que.push(w->item);			// queued to process next
 				sav.push(w->item);			// save the result
-				cout << "your code here";   // set parentBFS[] & distTo[]
+				g->parentBFS[w->item] = cur;
+				g->distTo[w->item] = g->distTo[g->parentBFS[w->item]] + 1;
 			}
 		}
+
 	}
 
 	g->BFSv = sav;                // save the result at v
@@ -391,9 +401,9 @@ void BFS_CCs(graph g) {
 		g->BFS0[i] = -1;
 		g->distTo[i] = -1;
 	}
-		
+
 	// BFS for all connected components starting from 0
-	for (int v = 0; v < V(g); v++) 
+	for (int v = 0; v < V(g); v++)
 		if (!g->marked[v]) BFS(g, v);
 
 	g->BFSv = {};  // clear it not to display, queue<int>().swap(g->BFSv);
@@ -404,7 +414,7 @@ void BFS_CCs(graph g) {
 // finds the first sequenced number staring 0, but not used in CCID[].
 int nextCCID(graph g) {
 	int N = V(g);
-	for(int id = 1; id <= N; id++) {   
+	for(int id = 1; id <= N; id++) {
 		bool found = false;
 		for (int i = 0; i < N && !found; i++) {  // id in CCID[]?
 			if (id == g->CCID[i]) found = true;
@@ -412,14 +422,14 @@ int nextCCID(graph g) {
 		if (!found) return id;
 	}
 	assert(false);   // something wrong^^
-	return 0; 
+	return 0;
 }
 
 // retrieves DFS results from queue and save it in DFS0[], CCID as well
 // also sets a connected component id
 void setDFS0(graph g, int v, queue<int>& que) {
 	DPRINT(cout << "\t>setDFS0 at " << v << ", size=" << que.size() << endl;);
-	
+
 	g->DFSv = que;                // save the result at v
 
 	int ccid = nextCCID(g);
@@ -432,33 +442,36 @@ void setDFS0(graph g, int v, queue<int>& que) {
 	}
 }
 
-// runs DFS for at vertex v recursively. 
+// runs DFS for at vertex v recursively.
 // Only que, g->marked[v] and g->parentDFS[] are updated here.
-void DFS(graph g, int v, queue<int>& que) {  
+void DFS(graph g, int v, queue<int>& que) {
 	DPRINT(cout << "\t >_DFS: v=" << v << endl;);
-
 	g->marked[v] = true;	// visited
 	que.push(v);			// save the path
 
-	cout << "your code here (recursion) \n";
+	for(gnode w = g -> adj[v].next; w; w = w -> next){
+		if (g->marked[w->item])	continue;
+		g->parentDFS[w->item] = v;
+		DFS(g, w->item, que);
+	}
 
 	DPRINT(cout << "\t <_DFS: v=" << v << endl;);
 }
 
-// runs DFS for all components and produces DFS0[], CCID[] & parentDFS[]. 
+// runs DFS for all components and produces DFS0[], CCID[] & parentDFS[].
 // It begins with the first vertex 0 at the adjacent list.
-// DFS results are saved by setDFS0(). 
+// DFS results are saved by setDFS0().
 void DFS_CCs(graph g) {
 	if (empty(g)) return;
 	DPRINT(cout << ">DFS_CCs 0" << endl;);
 
-	// DFS for all the connected componets 
+	// DFS for all the connected componets
 	for (int i = 0; i < V(g); i++) {
 		g->marked[i] = false;
 		g->CCID[i] = 0;
 		g->parentDFS[i] = -1;
 	}
-	
+
 	queue<int> que;
 	for (int v = 0; v < V(g); v++) {
 		if (!g->marked[v]) {
@@ -467,13 +480,13 @@ void DFS_CCs(graph g) {
 		}
 	}
 
-	g->DFSv = {};                  // clear it not to display, queue<int>().swap(g->DFSv);		 
+	g->DFSv = {};                  // clear it not to display, queue<int>().swap(g->DFSv);
 	DPRINT(cout << "<DFS_CCs\n";);
 }
 
-// returns a path from v to w using the DFS result or parentDFS[]. 
+// returns a path from v to w using the DFS result or parentDFS[].
 // It has to use a stack to retrace the path back to the source.
-// Once the client(caller) gets a stack returned, 
+// Once the client(caller) gets a stack returned,
 void DFSpath(graph g, int v, int w, stack<int>& path) {
 	DPRINT(cout << ">DFSpath v,w=" << v << "," << w << endl;);
 	if (empty(g)) return;
@@ -484,26 +497,42 @@ void DFSpath(graph g, int v, int w, stack<int>& path) {
 	}
 
 	queue<int> q;
-	DFS(g, v, q);  	             // DFS at v, starting vertex
-	g->DFSv = q;			     // DFS result at v 
+	vector<int> temp;
 
-	path = {};                   // clear path, stack<int>().swap(path);  
-	cout << "your code here\n";  // push v to w path to the stack path 
+	DFS(g, v, q);  	             // DFS at v, starting vertex
+	g->DFSv = q;						     // DFS result at v
+
+	path = {};                   // clear path, stack<int>().swap(path);
+															// push v to w path to the stack path
+	while(q.front() != w)	{
+		temp.push_back(q.front());
+		q.pop();
+	}
+	temp.push_back(q.front());
+	q.pop();
+
+	while(!temp.empty()){
+		path.push(temp.back());
+		temp.pop_back();
+	}
 
 	DPRINT(cout << "<DFSpath " << endl;);
 }
 
-// returns a path from v to w using the BFS result or parentBFS[]. 
+// returns a path from v to w using the BFS result or parentBFS[].
 // It has to use a stack to retrace the path back to the source.
-// Once the client(caller) gets a stack returned, 
+// Once the client(caller) gets a stack returned,
 void BFSpath(graph g, int v, int w, stack<int>& path) {
 	DPRINT(cout << ">BFSpath v,w=" << v << "," << w << endl;);
 	if (empty(g)) return;
 
 	BFS(g, v);                   // g->BFSv updated already.
 
-	path = {};                   // clear path, stack<int>().swap(path);  
-	cout << "your code here\n";  // push v to w path to the stack path 
+	path = {};                   // clear path, stack<int>().swap(path);
+	 															// push v to w path to the stack path
+  for(int cur = w; cur != v; cur = g->parentBFS[cur])
+		path.push(cur);
+	path.push(v);
 
 	DPRINT(cout << "<BFSpath " << endl;);
 }
@@ -516,19 +545,18 @@ bool connected(graph g, int v, int w) {
 	return g->CCID[v] == g->CCID[w];
 }
 
-// returns the number of edges in a shortest path between v and w 
+// returns the number of edges in a shortest path between v and w
 int distTo(graph g, int v, int w) {
 	if (empty(g)) return 0;
 	if (!connected(g, v, w)) return 0;
 
 	BFS(g, v);
-
-	cout << "your code here\n";      // compute and return distance
-	return 0;
+	// compute and return distance
+	return g->distTo[w];
 }
 
 /////////////////////////////////////////////////////////////////
-// returns true if found and 
+// returns true if found and
 // cy points to a stack with vertices pushed.
 bool hasSelfLoop(graph g, stack<int>& cy) {
 	stack<int>().swap(cy);				// cy = {};
@@ -545,7 +573,7 @@ bool hasSelfLoop(graph g, stack<int>& cy) {
 	return false;
 }
 
-// returns true if found and 
+// returns true if found and
 // cy points to a stack with vertices pushed.
 bool hasParallelEdges(graph g, stack<int>& cy) {
 	stack<int>().swap(cy);				// cy = {};
@@ -570,8 +598,8 @@ bool hasParallelEdges(graph g, stack<int>& cy) {
 	return false;
 }
 
-// finds a cycle at a vertex in the graph if exists using DFS and 
-// returns a stack loaded with vertices and nullptr if not found. 
+// finds a cycle at a vertex in the graph if exists using DFS and
+// returns a stack loaded with vertices and nullptr if not found.
 // The cycle() takes time proportional to V + E(in the worst case),
 // where V is the number of vertices and E is the number of edges.
 bool cyclic_at(graph g, int v, stack<int>& cy) {
@@ -586,8 +614,8 @@ bool cyclic_at(graph g, int v, stack<int>& cy) {
 	return DFScyclic(g, -1, v, cy); // u: vertex visited previously, v: visitng vertex
 }
 
-// finds a cycle in the graph if exists using DFS and 
-// returns a stack loaded with vertices and nullptr if not found. 
+// finds a cycle in the graph if exists using DFS and
+// returns a stack loaded with vertices and nullptr if not found.
 // The cycle() takes time proportional to V + E(in the worst case),
 // where V is the number of vertices and E is the number of edges.
 bool cyclic(graph g, stack<int>& cy) {
@@ -600,7 +628,7 @@ bool cyclic(graph g, stack<int>& cy) {
 	}
 
 	for (int v = 0; v < V(g); v++) {
-		if (!g->marked[v]) 
+		if (!g->marked[v])
 			if (DFScyclic(g, -1, v, cy)) return true;
 	}
 	DPRINT(cout << "<cyclic\n";);
@@ -622,7 +650,7 @@ bool DFScyclic(graph g, int u, int v, stack<int>& cy) {
 			DFScyclic(g, v, w->item, cy);           // NO return DFScyclic()
 		}
 		// check for cycle (but disregard reverse of edge leading to v)
-		else if (w->item != u) {  
+		else if (w->item != u) {
 			DPRINT(cout << " found a cycle w->item=" << w->item << ", u=" << u << ", v=" << v << endl;);
 			stack<int>().swap(cy);    // cy = {};	instantiate a new stack
 			for (int x = v; x != w->item; x = g->parentDFS[x]) {
@@ -661,7 +689,7 @@ bool bigraph(graph g, int v, stack<int>& cy) {
 	return true;
 }
 
-// returns true if the graph is bipartite or two-colorable, false otherwise. 
+// returns true if the graph is bipartite or two-colorable, false otherwise.
 // it also returns a stack with cyclic vertices pushed if any.
 // it finds either a bipartition or an odd length cycle.
 bool bigraph(graph g, stack<int>& cy) {     // using DFS
@@ -671,7 +699,7 @@ bool bigraph(graph g, stack<int>& cy) {     // using DFS
 	return true;
 }
 
-// returns true if it is two-colorable at v or bipartite, false otherwise. 
+// returns true if it is two-colorable at v or bipartite, false otherwise.
 bool bigraph(graph g, int v) {
 	DPRINT(cout << ">bigraph BFS: v=" << v << endl;);
 	queue<int> que;		// to process each vertex
@@ -679,7 +707,7 @@ bool bigraph(graph g, int v) {
 	return true;
 }
 
-// returns true if the graph is bipartite or two-colorable, false otherwise. 
+// returns true if the graph is bipartite or two-colorable, false otherwise.
 bool bigraph(graph g) {    // using adj-list and BFS
 	DPRINT(cout << ">bigraph\n";);
 	if (empty(g)) return false;
@@ -691,8 +719,12 @@ bool bigraph(graph g) {    // using adj-list and BFS
 ///////////////////// bigraph two coloring scheme /////////////////////////////////
 // helper functions to check two-colorability for bigraph
 void init2colorability(graph g) {
-	for (int v = 0; v < V(g); v++) g->marked[v] = false;
-	g->color[0] = BLACK;	// set starting at v=0, BLACK=0, WHITE=1 
+	//int count = 2;
+	for (int v = 0; v < V(g); v++){
+		g->marked[v] = false;
+		g->color[v] = -1;
+	}
+	g->color[0] = BLACK;	// set starting at v=0, BLACK=0, WHITE=1
 }
 
 // check the validity of two-coloring which is saved in g->color[].
@@ -707,12 +739,16 @@ bool check2colorability(graph g) {
 	return true;
 }
 
-// runs two-coloring using DFS recursively 
-void DFS2Coloring(graph g, int v) {	// DFS 
+// runs two-coloring using DFS recursively
+void DFS2Coloring(graph g, int v) {	// DFS
 	DPRINT(cout << ">DFS2Coloring v=" << v << " color=" << g->color[v] << endl;);
 	g->marked[v] = true;			// v is visited now
 
-	cout << "your code here (recursion)\n";
+	for(gnode w = g -> adj[v].next; w; w = w -> next){
+		if (g->marked[w->item])	continue;
+		g->color[w->item] = !(g->color[v]);
+		DFS2Coloring(g, w->item);
+	}
 
 	DPRINT(cout << "<DFS2Coloring visits v=" << v << endl;);
 }
@@ -721,12 +757,26 @@ void DFS2Coloring(graph g, int v) {	// DFS
 void BFS2Coloring(graph g) {
 	DPRINT(cout << ">BFS2Coloring" << endl;);
 	queue<int> que;
-	int v = 0;
-	que.push(v);
 
-	// while (!que.empty()) {
-	cout << "your code here \n";
-	// }
+	for (int v = 0; v < V(g); v++){
+		if(!g->marked[v]){
+			que.push(v);
+			break;
+		}
+	}
+
+	while (!que.empty()) {
+		int cur = que.front(); que.pop();  // remove it since processed
+		for (gnode w = g->adj[cur].next; w; w = w->next) {
+			if (!g->marked[w->item]) {
+				DPRINT(cout << w->item << " ";);
+				g->marked[w->item] = true;
+				que.push(w->item);			// queued to process next
+				g->color[w->item] = !(g->color[cur]);
+			}
+		}
+
+	}
 
 	DPRINT(cout << "<BFS2Coloring" << endl;);
 }
@@ -740,7 +790,12 @@ bool bigraphDFS2Coloring(graph g) {
 	init2colorability(g);
 
 	// run DFS for two-coloring starting at v=0
-	DFS2Coloring(g, 0);		
+	for (int v = 0; v < V(g); v++){
+		if(!g->marked[v]){
+			g->color[v] = BLACK;
+			DFS2Coloring(g, v);
+		}
+	}
 
 	return check2colorability(g);
 }
@@ -752,7 +807,12 @@ bool bigraphBFS2Coloring(graph g) {
 	init2colorability(g);
 
 	// run BFS for two-coloring
-	BFS2Coloring(g);      
+	for (int v = 0; v < V(g); v++){
+		if(!g->marked[v]){
+			g->color[v] = BLACK;
+			BFS2Coloring(g);
+		}
+	}
 
 	return check2colorability(g);
 }
